@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Appointments</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body { background-color: #f4f6f9; font-family: Arial, sans-serif; }
+    .appt-card { border: 1px solid #e9ecef; border-radius: 8px; transition: box-shadow 0.2s; }
+    .appt-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .notif-btn { position: relative; display: inline-block; }
+    .notif-badge {
+      position: absolute; top: -6px; right: -8px;
+      background: #dc3545; color: white; border-radius: 50%;
+      font-size: 0.65rem; width: 18px; height: 18px;
+      display: flex; align-items: center;
+      justify-content: center; font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <%- include('partials/_flash') %>
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-dark bg-dark px-4 mb-4">
+    <span class="navbar-brand fw-bold">
+      <i class="bi bi-calendar-check-fill text-warning me-2"></i>
+      My Appointments
+    </span>
+    <div class="d-flex align-items-center gap-3">
+      <a href="/notifications" class="btn btn-outline-light btn-sm notif-btn">
+        <i class="bi bi-bell-fill"></i>
+        <% if (typeof unreadCount !== 'undefined' && unreadCount > 0) { %>
+          <span class="notif-badge"><%= unreadCount %></span>
+        <% } %>
+      </a>
+      <a href="/booking" class="btn btn-outline-light btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Back to Booking
+      </a>
+      <a href="/logout" class="btn btn-danger btn-sm">
+        <i class="bi bi-box-arrow-right me-1"></i>Logout
+      </a>
+    </div>
+  </nav>
+
+  <div class="container" style="max-width:1000px;">
+
+    <h4 class="fw-bold mb-4">
+      <i class="bi bi-calendar2-week me-2 text-primary"></i>My Appointments
+    </h4>
+
+    <% if (appointments.length === 0) { %>
+      <div class="text-center py-5">
+        <i class="bi bi-calendar-x display-1 text-muted"></i>
+        <p class="mt-3 text-muted fs-5">No appointments found.</p>
+        <a href="/booking" class="btn btn-primary mt-2">
+          <i class="bi bi-plus-circle me-1"></i>Book Now
+        </a>
+      </div>
+    <% } %>
+
+    <% appointments.forEach(app => { %>
+      <div class="card appt-card mb-3 <%= app.status === 'CANCELLED' ? 'bg-light opacity-75' : '' %>">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <p class="mb-1">
+                <i class="bi bi-person-badge me-2 text-primary"></i>
+                <strong>Provider:</strong> <%= app.provider_email %>
+              </p>
+              <p class="mb-1">
+                <i class="bi bi-clock me-2 text-secondary"></i>
+                <strong>Time:</strong>
+                <%= new Date(app.start_time).toLocaleString() %>
+                &nbsp;—&nbsp;
+                <%= new Date(app.end_time).toLocaleString() %>
+              </p>
+              <p class="mb-0">
+                <i class="bi bi-info-circle me-2 text-secondary"></i>
+                <strong>Status:</strong>
+                <% if (app.status === 'BOOKED') { %>
+                  <span class="badge bg-success">
+                    <i class="bi bi-check-circle me-1"></i>BOOKED
+                  </span>
+                <% } else { %>
+                  <span class="badge bg-danger">
+                    <i class="bi bi-x-circle me-1"></i>CANCELLED
+                  </span>
+                <% } %>
+              </p>
+            </div>
+
+            <% if (app.status === 'BOOKED') { %>
+              <div class="col-md-4 text-md-end mt-3 mt-md-0 d-flex gap-2 justify-content-md-end">
+                <form method="POST" action="/cancel-appointment">
+                  <input type="hidden" name="appointment_id" value="<%= app.id %>">
+                  <button class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-x-circle me-1"></i>Cancel
+                  </button>
+                </form>
+                <form method="GET" action="/reschedule/<%= app.id %>">
+                  <button class="btn btn-outline-warning btn-sm">
+                    <i class="bi bi-arrow-repeat me-1"></i>Reschedule
+                  </button>
+                </form>
+              </div>
+            <% } %>
+
+          </div>
+        </div>
+      </div>
+    <% }) %>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
